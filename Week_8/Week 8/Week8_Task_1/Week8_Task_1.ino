@@ -1,0 +1,86 @@
+#include <LiquidCrystal.h>
+#include <TimerOne.h>
+
+// Define LCD pins
+LiquidCrystal lcd(37, 36, 35, 34, 33, 32);
+
+// Define variables
+volatile unsigned long pulseCount;
+volatile unsigned long windFrequency;
+volatile boolean buttonPressed;
+float windSpeed;
+unsigned long i_time;
+
+// Define pin numbers
+const int signalInputPin = 2;
+const int buttonInputPin = 3;
+
+void setup() {
+  // Initialize LCD
+  lcd.begin(16, 2);
+
+  // Initialize variables
+  pulseCount = 0;
+  windFrequency = 0;
+  buttonPressed = true;
+  windSpeed = 0.0;
+  i_time = 0;
+
+  // Attach interrupt function to signal input pin
+  attachInterrupt(digitalPinToInterrupt(signalInputPin), pulseCountFunction, RISING);
+
+  // Set up timer for 0.5 second intervals
+  Timer1.initialize(500000);
+  Timer1.attachInterrupt(timerInterruptFunction);
+
+  // Set button pin mode
+  pinMode(buttonInputPin, INPUT_PULLUP);
+}
+
+
+
+// Interrupt function to count pulses
+void pulseCountFunction() {
+  pulseCount++;
+}
+
+// Interrupt function to calculate wind frequency every 0.5 seconds
+void timerInterruptFunction() {
+  i_time++;
+  if (i_time > 9) { // Perform wind speed calculation every 5 seconds
+    windFrequency = pulseCount / 5; // Multiply pulse count by 2 to get frequency in Hz
+    pulseCount = 0; // Reset pulse count
+    windSpeed = -0.24 + windFrequency * 0.699; // Calculate wind speed using equation
+    i_time = 0; // Reset time counter
+  }
+}
+
+void loop() {
+  // Check if button is pressed
+  if (digitalRead(buttonInputPin) == HIGH) {
+    // Toggle pulse flag
+    buttonPressed = !buttonPressed;
+    // Wait for button to be released
+    while (digitalRead(buttonInputPin) == HIGH);
+    // Print frequency or wind speed depending on pulse flag
+    if (buttonPressed) {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Freq: ");
+      lcd.setCursor(0, 1);
+      lcd.print(windFrequency);
+      lcd.setCursor(2, 1);
+      lcd.print("Hz");
+    } else {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Wind Speed: ");
+      lcd.setCursor(0, 1);
+      lcd.print(windSpeed);
+      lcd.setCursor(5, 1);
+      lcd.print("m/s");
+    }
+  }
+  lcd.setCursor(21,1);
+  lcd.print("ES Course Group 2");
+}

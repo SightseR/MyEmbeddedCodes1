@@ -1,0 +1,107 @@
+#include <LiquidCrystal.h>
+
+LiquidCrystal lcd(37, 36, 35, 34, 33, 32);
+
+const int buttonInputPin = 3;
+volatile boolean buttonPressed;
+String windDirection;
+
+void setup() {
+  lcd.begin(16, 2);
+
+  pinMode(A2, INPUT);
+  pinMode(buttonInputPin, INPUT_PULLUP);
+  // pinMode(13, OUTPUT);
+  // pinMode(12, OUTPUT);
+  // pinMode(11, OUTPUT);
+  // pinMode(10, OUTPUT);
+  // pinMode(9, OUTPUT);
+  // pinMode(8, OUTPUT);
+  // pinMode(7, OUTPUT);
+  // pinMode(6, OUTPUT);
+  
+
+  buttonPressed = true;
+}
+
+void loop() {
+
+  delay(1000);
+  lcd.clear();
+  float analog_Value = analogRead(A2);
+  float voltage_Value = 5 * analog_Value / 1023;
+  int degree_Value = ((voltage_Value - 1.2) / 3.8) * 360;
+
+///////////////////////////////////////////////////
+  // lcd_1.setCursor(0, 20);  
+  // lcd_1.print(voltage_Value);  
+  // lcd_1.print(" : ");
+
+  // if (voltage_Value < 1.2) {
+  //   //lcd_1.clear();
+  //   lcd_1.print("Wait...");
+  // } else {  
+  // lcd_1.print(degree_Value);
+  // }
+/////////////////////////////////////////////////
+
+  
+
+  lcd.setCursor(0, 0);
+
+  if (voltage_Value < 1.2) {
+    
+      lcd.print("");
+      
+  } else if (degree_Value >= 337.5 || degree_Value <= 22.5) {
+    
+      windDirection = "N";
+
+  } else if (degree_Value > 22.5 && degree_Value <= 67.5) {
+    windDirection = "NE";
+
+  } else if (degree_Value > 67.5 && degree_Value <= 112.5) {
+    
+    windDirection = "E";
+    
+  } else if (degree_Value > 112.5 && degree_Value <= 157.5) {
+    windDirection = "SE";
+    
+  } else if (degree_Value > 157.5 && degree_Value <= 202.5) {
+    windDirection = "S";
+    
+  } else if (degree_Value > 202.5 && degree_Value <= 247.5) {
+    windDirection = "SW";
+    
+  } else if (degree_Value > 247.5 && degree_Value <= 292.5) {
+    windDirection = "W";
+    
+  } else {
+    windDirection = "NW";
+    
+  }
+
+   if (digitalRead(buttonInputPin) == HIGH) {
+    // Toggle pulse flag
+    buttonPressed = !buttonPressed;
+    // Wait for button to be released
+    while (digitalRead(buttonInputPin) == HIGH);
+    // Print frequency or wind speed depending on pulse flag
+    if (buttonPressed) {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print(windDirection);
+    } else {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print(degree_Value);
+      lcd.print(" degrees");
+    }
+
+  for (int i = 6; i <= 13; i++) {
+    if (i != digitalRead(i)) {
+      digitalWrite(i, LOW);
+    }
+  }
+}
+}
